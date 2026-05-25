@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lumen — Universal Landing Template</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --bg: #050505;
+    --fg: #ffffff;
+    --fg-60: rgba(255,255,255,.60);
+    --fg-50: rgba(255,255,255,.50);
+    --fg-40: rgba(255,255,255,.40);
+    --fg-10: rgba(255,255,255,.10);
+    --fg-05: rgba(255,255,255,.05);
+    --glass-bg: rgba(255,255,255,0.01);
+    --glass-shadow: inset 0 1px 1px rgba(255,255,255,0.10);
+    --glass-ring-1: rgba(255,255,255,0.45);
+    --glass-ring-2: rgba(255,255,255,0.15);
+    --hover-bg: rgba(255,255,255,.05);
+    --accent: #ffffff;
+    --radial: radial-gradient(ellipse at top, rgba(255,255,255,.04) 0%, transparent 70%);
+    --grain-op: .035;
+  }
+  html[data-theme="light"]{
+    --bg: #f5f3ee;
+    --fg: #16140f;
+    --fg-60: rgba(22,20,15,.66);
+    --fg-50: rgba(22,20,15,.55);
+    --fg-40: rgba(22,20,15,.42);
+    --fg-10: rgba(22,20,15,.10);
+    --fg-05: rgba(22,20,15,.06);
+    --glass-bg: rgba(255,255,255,.35);
+    --glass-shadow: inset 0 1px 1px rgba(255,255,255,.8);
+    --glass-ring-1: rgba(22,20,15,.22);
+    --glass-ring-2: rgba(22,20,15,.07);
+    --hover-bg: rgba(22,20,15,.06);
+    --radial: radial-gradient(ellipse at top, rgba(22,20,15,.04) 0%, transparent 70%);
+    --grain-op: .05;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+    font-family:'Inter',ui-sans-serif,system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    transition: background-color .5s ease, color .5s ease;
+  }
+  .serif{font-family:'Instrument Serif',ui-serif,Georgia,serif;font-weight:400}
+  .italic{font-style:italic}
+
+  /* Liquid glass — works on both themes via variables */
+  .liquid-glass{
+    background: var(--glass-bg);
+    background-blend-mode: luminosity;
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+    border: none;
+    box-shadow: var(--glass-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .liquid-glass::before{
+    content:'';
+    position:absolute; inset:0;
+    border-radius: inherit;
+    padding: 1.2px;
+    background: linear-gradient(
+      180deg,
+      var(--glass-ring-1) 0%,
+      var(--glass-ring-2) 20%,
+      transparent 40%,
+      transparent 60%,
+      var(--glass-ring-2) 80%,
+      var(--glass-ring-1) 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Placeholder video / image surface — soft animated gradient so the page works even
+     before the real media drops in. Use [data-media-slot] to mark these for the user. */
+  .media-placeholder{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(120% 80% at 30% 20%, rgba(255,255,255,.08), transparent 60%),
+      radial-gradient(120% 80% at 80% 80%, rgba(255,255,255,.06), transparent 60%),
+      linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 50%, #141414 100%);
+    overflow:hidden;
+  }
+  html[data-theme="light"] .media-placeholder{
+    background:
+      radial-gradient(120% 80% at 30% 20%, rgba(22,20,15,.10), transparent 60%),
+      radial-gradient(120% 80% at 80% 80%, rgba(22,20,15,.06), transparent 60%),
+      linear-gradient(135deg, #e8e3d9 0%, #d8d2c5 50%, #ece7dd 100%);
+  }
+  .media-placeholder::after{
+    content:''; position:absolute; inset:-50%;
+    background:
+      conic-gradient(from 0deg at 50% 50%,
+        rgba(255,255,255,.08), transparent 30%, rgba(255,255,255,.04) 60%, transparent 90%);
+    animation: spin 38s linear infinite;
+    filter: blur(40px);
+  }
+  html[data-theme="light"] .media-placeholder::after{
+    background: conic-gradient(from 0deg at 50% 50%,
+      rgba(22,20,15,.08), transparent 30%, rgba(22,20,15,.04) 60%, transparent 90%);
+  }
+  .media-placeholder .slot-tag{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    font: 500 11px/1.3 ui-monospace,Menlo,monospace;
+    letter-spacing:.18em; text-transform:uppercase;
+    color: var(--fg-40);
+    background: var(--glass-bg);
+    border: 1px solid var(--fg-10);
+    padding: 8px 14px; border-radius: 999px;
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  }
+  @keyframes spin { to { transform: rotate(360deg) } }
+
+  /* subtle grain (gradient noise — keeps bundler happy) */
+  .grain::before{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    opacity: var(--grain-op);
+    background:
+      repeating-radial-gradient(circle at 17% 23%, rgba(255,255,255,.5) 0 .8px, transparent 1px 5px),
+      repeating-radial-gradient(circle at 71% 61%, rgba(0,0,0,.5) 0 .8px, transparent 1px 5px);
+    mix-blend-mode: overlay;
+    z-index: 2;
+  }
+
+  .hero-video{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; object-position: bottom;
+    opacity: 0;
+  }
+  html[data-theme="light"] .hero-video{ filter: invert(1) hue-rotate(180deg) brightness(1.05); }
+
+  .max-6xl{max-width:1180px; margin: 0 auto}
+  .max-5xl{max-width:1024px; margin: 0 auto}
+  .max-xl{max-width:560px}
+
+  .h-display{
+    font-family:'Instrument Serif', serif;
+    font-weight: 400;
+    letter-spacing: -0.025em;
+    line-height: 0.96;
+  }
+
+  /* Nav */
+  .nav-link{color:var(--fg-60); font-size:13px; font-weight:500; letter-spacing:.01em;
+    text-decoration:none; transition:color .2s ease}
+  .nav-link:hover{color:var(--fg)}
+
+  /* Buttons */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    border:0; cursor:default; color:var(--fg);
+    font: 500 13px/1 'Inter', system-ui, sans-serif;
+    padding: 12px 22px; border-radius: 999px;
+    transition: background .25s ease, transform .2s ease, color .2s ease;
+  }
+  .btn-solid{ background: var(--fg); color: var(--bg); padding: 14px; border-radius:999px; }
+  .btn-ghost:hover{ background: var(--hover-bg); }
+
+  input.bare{
+    background:transparent; border:0; outline:0; color:var(--fg);
+    font:500 14px/1.2 'Inter', system-ui, sans-serif; width:100%; padding:8px 0 8px 4px;
+  }
+  input.bare::placeholder{ color: var(--fg-40); }
+
+  /* Card hover scale for service videos */
+  .card-media{ transition: transform .9s cubic-bezier(.2,.7,.1,1) }
+  .card:hover .card-media{ transform: scale(1.05) }
+
+  .divider-h{ height:1px; background: var(--fg-10); width:100%; }
+
+  .uppercase-wide{
+    text-transform: uppercase; letter-spacing:.18em; font-size:11px; font-weight:500;
+    color: var(--fg-40);
+  }
+
+  /* Scroll-cue */
+  .scroll-cue{
+    position: absolute; left:50%; transform:translateX(-50%); bottom: 28px;
+    color: var(--fg-40); font: 500 11px/1 'Inter',sans-serif;
+    letter-spacing:.2em; text-transform:uppercase; display:flex; flex-direction:column;
+    align-items:center; gap:10px;
+  }
+  .scroll-cue .line{ width:1px; height: 34px; background: var(--fg-40); animation: pulse 2.2s ease-in-out infinite }
+  @keyframes pulse{ 0%,100%{opacity:.2} 50%{opacity:1} }
+
+  /* fade-in helper */
+  .reveal{ opacity:0; transform: translateY(28px); transition: opacity .9s ease, transform .9s ease; }
+  .reveal.in{ opacity:1; transform: translateY(0); }
+  .reveal.from-l{ transform: translateX(-32px); } .reveal.from-l.in{ transform:translateX(0); }
+  .reveal.from-r{ transform: translateX(32px); }  .reveal.from-r.in{ transform:translateX(0); }
+  .reveal.d-1{ transition-delay: .08s } .reveal.d-2{ transition-delay: .16s } .reveal.d-3{ transition-delay: .26s }
+
+  /* responsive helpers */
+  @media (max-width: 760px){
+    .hide-sm{display:none !important}
+    .stack-sm{flex-direction:column !important}
+  }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<template id="__bundler_thumbnail" data-bg-color="#f5f3ee">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#f5f3ee"/>
+    <g transform="translate(600 400)" fill="none" stroke="#16140f" stroke-width="6" stroke-linecap="round">
+      <circle r="160" stroke-opacity="0.9"/>
+      <ellipse rx="160" ry="62" stroke-opacity="0.55"/>
+      <line x1="-160" y1="0" x2="160" y2="0" stroke-opacity="0.55"/>
+      <path d="M0 -160 C 60 -80 60 80 0 160 C -60 80 -60 -80 0 -160 Z" stroke-opacity="0.55"/>
+    </g>
+    <text x="600" y="640" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="44" fill="#16140f">Lumen</text>
+  </svg>
+</template>
+<div id="root"></div>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel">
+/* ------------------------------------------------------------------ */
+/* Tiny icon set (inline SVG, no deps)                                 */
+/* ------------------------------------------------------------------ */
+const Icon = {
+  globe: (p) => (
+    <svg viewBox="0 0 24 24" width={p.size||20} height={p.size||20} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9.2"/><path d="M3 12h18"/><path d="M12 3c2.6 3 4 6 4 9s-1.4 6-4 9c-2.6-3-4-6-4-9s1.4-6 4-9z"/>
+    </svg>),
+  arrowR: (p) => (
+    <svg viewBox="0 0 24 24" width={p.size||18} height={p.size||18} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12h14"/><path d="M13 5l7 7-7 7"/>
+    </svg>),
+  arrowUR: (p) => (
+    <svg viewBox="0 0 24 24" width={p.size||16} height={p.size||16} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 17L17 7"/><path d="M8 7h9v9"/>
+    </svg>),
+  insta: (p) => (
+    <svg viewBox="0 0 24 24" width={p.size||18} height={p.size||18} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/>
+    </svg>),
+  x: (p) => (
+    <svg viewBox="0 0 24 24" width={p.size||18} height={p.size||18} fill="currentColor"><path d="M18.244 2H21l-6.52 7.452L22 22h-6.873l-4.79-6.27L4.8 22H2.044l6.97-7.96L2 2h7.046l4.32 5.71L18.244 2Zm-1.205 18.2h1.74L7.04 3.7H5.18l11.86 16.5Z"/></svg>),
+  in: (p) => (
+    <svg viewBox="0 0 24 24" width={p.size||18} height={p.size||18} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10v7"/><circle cx="8" cy="7.2" r="1" fill="currentColor" stroke="none"/><path d="M12 17v-4.5a2.5 2.5 0 0 1 5 0V17"/><path d="M12 10v7"/>
+    </svg>),
+  sun: (p) => (
+    <svg viewBox="0 0 24 24" width={p.size||16} height={p.size||16} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3.6"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5.2 5.2 3.8 3.8M20.2 20.2l-1.4-1.4M5.2 18.8 3.8 20.2M20.2 3.8l-1.4 1.4"/>
+    </svg>),
+  moon: (p) => (
+    <svg viewBox="0 0 24 24" width={p.size||16} height={p.size||16} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.6A8.5 8.5 0 1 1 11.4 3a6.8 6.8 0 0 0 9.6 9.6Z"/>
+    </svg>),
+};
+
+/* ------------------------------------------------------------------ */
+/* Reveal-on-scroll helper                                             */
+/* ------------------------------------------------------------------ */
+function useReveal(){
+  React.useEffect(()=>{
+    const els = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }});
+    },{rootMargin:'-80px 0px'});
+    els.forEach(el=>io.observe(el));
+    return ()=>io.disconnect();
+  },[]);
+}
+
+/* ------------------------------------------------------------------ */
+/* Media slot — render <video> if src given, else a placeholder        */
+/* ------------------------------------------------------------------ */
+function MediaSlot({ src, label, poster, loop=true, className, style, fitBottom }){
+  if (src){
+    return (
+      <video
+        className={className}
+        style={style}
+        src={src}
+        muted autoPlay loop={loop} playsInline preload="auto"
+      />
+    );
+  }
+  return (
+    <div className={"media-placeholder " + (className||"")} style={style}>
+      <div className="slot-tag">{label || 'video / image'}</div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Theme toggle button (top-right corner of navbar)                    */
+/* ------------------------------------------------------------------ */
+function ThemeToggle({ dark, onToggle }){
+  return (
+    <button onClick={onToggle} className="liquid-glass btn btn-ghost" style={{padding:'10px 14px', gap:8}}>
+      {dark ? <Icon.sun/> : <Icon.moon/>}
+      <span style={{fontSize:12, fontWeight:500, letterSpacing:'.02em'}}>{dark ? 'Light' : 'Dark'}</span>
+    </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* HERO                                                                */
+/* ------------------------------------------------------------------ */
+function Hero({ t, setTweak }){
+  const vRef = React.useRef(null);
+  const rafRef = React.useRef(0);
+
+  // Smooth video fade-in / loop crossfade
+  React.useEffect(()=>{
+    const v = vRef.current; if (!v || !t.heroVideo) return;
+    let fadeOutTimer;
+    const fade = (from, to, ms, done) => {
+      cancelAnimationFrame(rafRef.current);
+      const start = performance.now();
+      const step = (now)=>{
+        const k = Math.min(1, (now-start)/ms);
+        v.style.opacity = (from + (to-from)*k).toString();
+        if (k<1) rafRef.current = requestAnimationFrame(step);
+        else if (done) done();
+      };
+      rafRef.current = requestAnimationFrame(step);
+    };
+    const onCanPlay = () => { v.play().catch(()=>{}); fade(0,1,500); };
+    const onTime = () => { if (v.duration && (v.duration - v.currentTime) <= 0.55) fade(parseFloat(v.style.opacity||1), 0, 500); };
+    const onEnded = () => {
+      v.style.opacity = 0;
+      setTimeout(()=>{ v.currentTime = 0; v.play().catch(()=>{}); fade(0,1,500); }, 100);
+    };
+    v.addEventListener('canplay', onCanPlay);
+    v.addEventListener('timeupdate', onTime);
+    v.addEventListener('ended', onEnded);
+    return ()=>{
+      v.removeEventListener('canplay', onCanPlay);
+      v.removeEventListener('timeupdate', onTime);
+      v.removeEventListener('ended', onEnded);
+      cancelAnimationFrame(rafRef.current);
+      clearTimeout(fadeOutTimer);
+    };
+  },[t.heroVideo]);
+
+  return (
+    <section style={{position:'relative', minHeight:'100vh', overflow:'hidden', display:'flex', flexDirection:'column'}}>
+      {/* Background — video if provided, else animated placeholder */}
+      {t.heroVideo
+        ? <video ref={vRef} className="hero-video" src={t.heroVideo} muted autoPlay playsInline preload="auto" />
+        : <div className="media-placeholder grain" style={{position:'absolute', inset:0}}>
+            <div className="slot-tag" style={{top:'auto', bottom:88}}>hero video / image</div>
+          </div>
+      }
+      {/* Soft vignette so text never fights the media */}
+      <div style={{position:'absolute', inset:0, background:'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.18) 60%, rgba(0,0,0,.55) 100%)', pointerEvents:'none', zIndex:1}}/>
+
+      {/* NAV */}
+      <nav style={{position:'relative', zIndex:20, padding:'22px 24px'}}>
+        <div className="liquid-glass max-5xl" style={{display:'flex', alignItems:'center', justifyContent:'space-between', borderRadius:999, padding:'10px 12px 10px 22px'}}>
+          <div style={{display:'flex', alignItems:'center', gap:30}}>
+            <a href="#" style={{display:'flex', alignItems:'center', gap:10, color:'var(--fg)', textDecoration:'none'}}>
+              <Icon.globe size={20}/>
+              <span style={{fontWeight:600, fontSize:16, letterSpacing:'-0.01em'}}>{t.brand}</span>
+            </a>
+            <div className="hide-sm" style={{display:'flex', gap:26}}>
+              {['Work','Approach','Studio','Journal'].map(l=>(
+                <a key={l} href="#" className="nav-link">{l}</a>
+              ))}
+            </div>
+          </div>
+          <div style={{display:'flex', alignItems:'center', gap:10}}>
+            <a href="#" className="nav-link hide-sm" style={{padding:'8px 12px'}}>Sign up</a>
+            <ThemeToggle dark={!t.light} onToggle={()=>setTweak('light', !t.light)} />
+          </div>
+        </div>
+      </nav>
+
+      {/* HERO CONTENT */}
+      <div style={{position:'relative', zIndex:10, flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'24px 24px 88px', textAlign:'center', transform:'translateY(-6%)'}}>
+        <div className="uppercase-wide reveal" style={{color:'var(--fg-50)', marginBottom:22}}>{t.kicker}</div>
+
+        <h1 className="h-display reveal d-1" style={{
+          fontSize:'clamp(56px, 11vw, 168px)',
+          margin:'0 0 28px',
+          color:'var(--fg)',
+          whiteSpace:'nowrap',
+        }}>
+          {t.headPre} <span className="italic" style={{color:'var(--fg-60)'}}>{t.headEm}</span>{t.headPost && <> {t.headPost}</>}
+        </h1>
+
+        <p className="reveal d-2" style={{maxWidth:560, color:'var(--fg-60)', fontSize:15, lineHeight:1.65, margin:'0 0 28px', padding:'0 8px'}}>
+          {t.subline}
+        </p>
+
+        <div className="liquid-glass reveal d-2" style={{display:'flex', alignItems:'center', gap:8, padding:'6px 6px 6px 20px', borderRadius:999, width:'min(520px, 92%)'}}>
+          <input className="bare" placeholder="Enter your email" />
+          <button className="btn-solid btn" aria-label="Subscribe" style={{padding:12}}>
+            <Icon.arrowR size={18}/>
+          </button>
+        </div>
+
+        <button className="liquid-glass btn btn-ghost reveal d-3" style={{marginTop:18, padding:'12px 24px'}}>
+          Read the manifesto
+        </button>
+      </div>
+
+      {/* Social row */}
+      <div style={{position:'relative', zIndex:10, display:'flex', justifyContent:'center', gap:12, paddingBottom:36}}>
+        {[Icon.insta, Icon.x, Icon.in].map((I,i)=>(
+          <button key={i} className="liquid-glass btn btn-ghost" style={{padding:14, borderRadius:999}} aria-label="social"><I/></button>
+        ))}
+      </div>
+
+      <div className="scroll-cue hide-sm" aria-hidden="true">
+        <span>Scroll</span><div className="line"/>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* ABOUT                                                               */
+/* ------------------------------------------------------------------ */
+function About({ t }){
+  return (
+    <section style={{position:'relative', padding:'120px 24px 40px', overflow:'hidden'}}>
+      <div style={{position:'absolute', inset:0, background:'var(--radial)', pointerEvents:'none'}}/>
+      <div className="max-6xl" style={{position:'relative'}}>
+        <div className="uppercase-wide reveal" style={{marginBottom:32}}>About</div>
+        <h2 className="h-display reveal d-1" style={{
+          fontSize:'clamp(36px, 6.4vw, 96px)',
+          color:'var(--fg)', margin:0, lineHeight:1.05, maxWidth:1100,
+        }}>
+          <span className="italic" style={{color:'var(--fg-60)'}}>Pioneering</span> ideas for
+          <br className="hide-sm"/> minds that
+          <span className="italic" style={{color:'var(--fg-60)'}}> create, build, and inspire</span>.
+        </h2>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* FEATURED VIDEO                                                      */
+/* ------------------------------------------------------------------ */
+function Featured({ t }){
+  return (
+    <section style={{padding:'40px 24px 120px', overflow:'hidden'}}>
+      <div className="max-6xl reveal" style={{position:'relative', borderRadius:32, overflow:'hidden', aspectRatio:'16/9'}}>
+        <MediaSlot src={t.featuredVideo} label="featured video / image" className="card-media" style={{position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover'}}/>
+        <div style={{position:'absolute', inset:0, background:'linear-gradient(0deg, rgba(0,0,0,.62) 0%, rgba(0,0,0,0) 55%)', pointerEvents:'none'}}/>
+        <div className="stack-sm" style={{position:'absolute', left:0, right:0, bottom:0, display:'flex', alignItems:'flex-end', justifyContent:'space-between', gap:20, padding:'28px 32px'}}>
+          <div className="liquid-glass" style={{borderRadius:20, padding:'22px 24px', maxWidth:420, color:'#fff'}}>
+            <div className="uppercase-wide" style={{color:'rgba(255,255,255,.55)', marginBottom:10}}>Our approach</div>
+            <p style={{margin:0, fontSize:15, lineHeight:1.55}}>
+              We believe in curiosity-driven exploration. Every project begins with a question,
+              and every answer opens a new door.
+            </p>
+          </div>
+          <button className="liquid-glass btn btn-ghost" style={{padding:'14px 26px', color:'#fff'}}>
+            Explore more <Icon.arrowUR/>
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* PHILOSOPHY                                                          */
+/* ------------------------------------------------------------------ */
+function Philosophy({ t }){
+  return (
+    <section style={{padding:'120px 24px', overflow:'hidden'}}>
+      <div className="max-6xl">
+        <h2 className="h-display reveal" style={{fontSize:'clamp(42px, 8vw, 124px)', margin:'0 0 64px', color:'var(--fg)'}}>
+          Vision <span className="italic" style={{color:'var(--fg-40)'}}>×</span> Execution
+        </h2>
+        <div className="stack-sm" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:48, alignItems:'stretch'}}>
+          <div className="reveal from-l" style={{position:'relative', borderRadius:28, overflow:'hidden', aspectRatio:'4/3'}}>
+            <MediaSlot src={t.philosophyVideo} label="motion / image" style={{position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover'}}/>
+          </div>
+          <div className="reveal from-r" style={{display:'flex', flexDirection:'column', justifyContent:'center', gap:36, padding:'8px 0'}}>
+            <div>
+              <div className="uppercase-wide" style={{marginBottom:14}}>Choose your space</div>
+              <p style={{margin:0, color:'var(--fg-60)', fontSize:'clamp(15px,1.1vw,18px)', lineHeight:1.65, maxWidth:520}}>
+                Every meaningful breakthrough begins at the intersection of disciplined strategy
+                and remarkable creative vision. We operate at that crossroads — turning bold thinking
+                into outcomes that move people and reshape industries.
+              </p>
+            </div>
+            <div className="divider-h"/>
+            <div>
+              <div className="uppercase-wide" style={{marginBottom:14}}>Shape the future</div>
+              <p style={{margin:0, color:'var(--fg-60)', fontSize:'clamp(15px,1.1vw,18px)', lineHeight:1.65, maxWidth:520}}>
+                The best work emerges when curiosity meets conviction. Our process is built to
+                surface hidden opportunities and translate them into experiences that resonate
+                long after the first impression.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* SERVICES                                                            */
+/* ------------------------------------------------------------------ */
+function ServiceCard({ idx, tag, title, body, video, delayCls }){
+  return (
+    <div className={"card liquid-glass reveal "+delayCls} style={{borderRadius:28, overflow:'hidden', display:'flex', flexDirection:'column'}}>
+      <div style={{position:'relative', aspectRatio:'16/9', overflow:'hidden'}}>
+        <MediaSlot src={video} label={`service ${idx} media`} className="card-media" style={{position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover'}}/>
+        <div style={{position:'absolute', inset:0, background:'linear-gradient(0deg, rgba(0,0,0,.42), transparent 55%)', pointerEvents:'none'}}/>
+      </div>
+      <div style={{padding:'28px 28px 30px', position:'relative'}}>
+        <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14}}>
+          <span className="uppercase-wide">{tag}</span>
+          <div className="liquid-glass" style={{width:34, height:34, borderRadius:999, display:'grid', placeItems:'center', color:'var(--fg)'}}>
+            <Icon.arrowUR size={14}/>
+          </div>
+        </div>
+        <h3 style={{margin:'0 0 10px', fontFamily:"'Instrument Serif',serif", fontWeight:400, fontSize:'clamp(22px,2.4vw,30px)', letterSpacing:'-.01em', color:'var(--fg)'}}>{title}</h3>
+        <p style={{margin:0, color:'var(--fg-50)', fontSize:14, lineHeight:1.6}}>{body}</p>
+      </div>
+    </div>
+  );
+}
+
+function Services({ t }){
+  return (
+    <section style={{position:'relative', padding:'120px 24px', overflow:'hidden'}}>
+      <div style={{position:'absolute', inset:0, background:'radial-gradient(ellipse at center, rgba(255,255,255,.03), transparent 60%)', pointerEvents:'none'}}/>
+      <div className="max-6xl" style={{position:'relative'}}>
+        <div className="reveal" style={{display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginBottom:48, gap:24}}>
+          <h2 className="h-display" style={{margin:0, fontSize:'clamp(34px, 5.4vw, 80px)', color:'var(--fg)'}}>What we do</h2>
+          <span className="uppercase-wide hide-sm">Our services</span>
+        </div>
+        <div className="stack-sm" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:28}}>
+          <ServiceCard idx={1} tag="Strategy"    title="Research & Insight"
+            body="We dig deep into data, culture, and human behavior to surface insights that drive meaningful, lasting change."
+            video={t.serviceVideo1} delayCls="d-1"/>
+          <ServiceCard idx={2} tag="Craft"       title="Design & Execution"
+            body="From concept to launch, we obsess over every detail to deliver experiences that feel effortless and look extraordinary."
+            video={t.serviceVideo2} delayCls="d-2"/>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* CTA / Footer                                                        */
+/* ------------------------------------------------------------------ */
+function FooterCTA({ t }){
+  return (
+    <section style={{padding:'80px 24px 60px'}}>
+      <div className="max-6xl liquid-glass" style={{borderRadius:36, padding:'72px 48px', textAlign:'center', position:'relative', overflow:'hidden'}}>
+        <div className="uppercase-wide reveal" style={{marginBottom:18}}>Let's build</div>
+        <h3 className="h-display reveal d-1" style={{margin:'0 0 22px', fontSize:'clamp(36px, 6.4vw, 88px)', color:'var(--fg)'}}>
+          Have an <span className="italic" style={{color:'var(--fg-60)'}}>idea?</span>
+        </h3>
+        <p className="reveal d-2" style={{maxWidth:520, margin:'0 auto 28px', color:'var(--fg-60)', fontSize:15, lineHeight:1.6}}>
+          Tell us about the project. We'll come back within two business days with a perspective
+          and a path forward.
+        </p>
+        <button className="btn reveal d-2" style={{background:'var(--fg)', color:'var(--bg)', padding:'14px 26px'}}>
+          Start a conversation <Icon.arrowR size={16}/>
+        </button>
+      </div>
+      <div className="max-6xl stack-sm" style={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:14, padding:'40px 6px 8px', color:'var(--fg-50)', fontSize:12}}>
+        <div style={{display:'flex', alignItems:'center', gap:10}}>
+          <Icon.globe size={14}/>
+          <span>© {new Date().getFullYear()} {t.brand} Studio</span>
+        </div>
+        <div style={{display:'flex', gap:22}}>
+          <a className="nav-link" href="#">Privacy</a>
+          <a className="nav-link" href="#">Terms</a>
+          <a className="nav-link" href="#">Contact</a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* APP + TWEAKS                                                        */
+/* ------------------------------------------------------------------ */
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "light": true,
+  "brand": "Lumen",
+  "kicker": "Universal landing template — 2026 edition",
+  "headPre": "Know it then",
+  "headEm": "all",
+  "headPost": "",
+  "subline": "A versatile starting point for studios, SaaS, agencies, and ambitious indie products. Drop in your media, your copy, and ship.",
+  "heroVideo": "",
+  "featuredVideo": "",
+  "philosophyVideo": "",
+  "serviceVideo1": "",
+  "serviceVideo2": ""
+}/*EDITMODE-END*/;
+
+function App(){
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  useReveal();
+
+  React.useEffect(()=>{
+    document.documentElement.setAttribute('data-theme', t.light ? 'light' : 'dark');
+  },[t.light]);
+
+  return (
+    <div style={{background:'var(--bg)', color:'var(--fg)', overflowX:'hidden'}}>
+      <Hero t={t} setTweak={setTweak}/>
+      <About t={t}/>
+      <Featured t={t}/>
+      <Philosophy t={t}/>
+      <Services t={t}/>
+      <FooterCTA t={t}/>
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Theme"/>
+        <TweakRadio label="Mode" value={t.light ? 'light':'dark'}
+          options={['dark','light']}
+          onChange={(v)=>setTweak('light', v==='light')}/>
+
+        <TweakSection label="Brand & copy"/>
+        <TweakText label="Brand name" value={t.brand} onChange={v=>setTweak('brand', v)}/>
+        <TweakText label="Kicker" value={t.kicker} onChange={v=>setTweak('kicker', v)}/>
+        <TweakText label="Headline (pre)" value={t.headPre} onChange={v=>setTweak('headPre', v)}/>
+        <TweakText label="Headline (italic)" value={t.headEm} onChange={v=>setTweak('headEm', v)}/>
+        <TweakText label="Headline (post)" value={t.headPost} onChange={v=>setTweak('headPost', v)}/>
+        <TweakText label="Subline" value={t.subline} onChange={v=>setTweak('subline', v)}/>
+
+        <TweakSection label="Media (URLs)"/>
+        <TweakText label="Hero" value={t.heroVideo} onChange={v=>setTweak('heroVideo', v)}/>
+        <TweakText label="Featured" value={t.featuredVideo} onChange={v=>setTweak('featuredVideo', v)}/>
+        <TweakText label="Philosophy" value={t.philosophyVideo} onChange={v=>setTweak('philosophyVideo', v)}/>
+        <TweakText label="Service 1" value={t.serviceVideo1} onChange={v=>setTweak('serviceVideo1', v)}/>
+        <TweakText label="Service 2" value={t.serviceVideo2} onChange={v=>setTweak('serviceVideo2', v)}/>
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
